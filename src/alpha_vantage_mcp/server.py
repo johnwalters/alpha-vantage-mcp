@@ -51,6 +51,25 @@ async def handle_list_tools() -> list[types.Tool]:
                 "required": ["symbol"],
             },
         ),
+        types.Tool(
+            name="get-crypto-exchange-rate",
+            description="Get current cryptocurrency exchange rate",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "crypto_symbol": {
+                        "type": "string",
+                        "description": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                    },
+                    "market": {
+                        "type": "string",
+                        "description": "Market currency (e.g., USD, EUR)",
+                        "default": "USD"
+                    }
+                },
+                "required": ["crypto_symbol"],
+            },
+        ),
     ]
 
 async def make_alpha_request(client: httpx.AsyncClient, function: str, symbol: str, additional_params: dict = None) -> dict[str, Any] | str:
@@ -134,6 +153,25 @@ def format_company_info(overview_data: dict) -> str:
     except Exception as e:
         return f"Error formatting company data: {str(e)}"
 
+def format_crypto_rate(crypto_data: dict) -> str:
+    """Format cryptocurrency exchange rate data into a concise string."""
+    try:
+        realtime_data = crypto_data.get("Realtime Currency Exchange Rate", {})
+        if not realtime_data:
+            return "No exchange rate data available in the response"
+            
+        return (
+            f"From: {realtime_data.get('2. From_Currency Name', 'N/A')} ({realtime_data.get('1. From_Currency Code', 'N/A')})\n"
+            f"To: {realtime_data.get('4. To_Currency Name', 'N/A')} ({realtime_data.get('3. To_Currency Code', 'N/A')})\n"
+            f"Exchange Rate: {realtime_data.get('5. Exchange Rate', 'N/A')}\n"
+            f"Last Updated: {realtime_data.get('6. Last Refreshed', 'N/A')} {realtime_data.get('7. Time Zone', 'N/A')}\n"
+            f"Bid Price: {realtime_data.get('8. Bid Price', 'N/A')}\n"
+            f"Ask Price: {realtime_data.get('9. Ask Price', 'N/A')}\n"
+            "---"
+        )
+    except Exception as e:
+        return f"Error formatting cryptocurrency data: {str(e)}"
+
 @server.call_tool()
 async def handle_call_tool(
     name: str, arguments: dict | None
@@ -188,6 +226,35 @@ async def handle_call_tool(
             info_text = f"Company information for {symbol}:\n\n{formatted_info}"
 
             return [types.TextContent(type="text", text=info_text)]
+            
+    elif name == "get-crypto-exchange-rate":
+        crypto_symbol = arguments.get("crypto_symbol")
+        if not crypto_symbol:
+            return [types.TextContent(type="text", text="Missing crypto_symbol parameter")]
+
+        market = arguments.get("market", "USD")
+        crypto_symbol = crypto_symbol.upper()
+        market = market.upper()
+        
+        async with httpx.AsyncClient() as client:
+            crypto_data = await make_alpha_request(
+                client,
+                "CURRENCY_EXCHANGE_RATE",
+                None,
+                {
+                    "from_currency": crypto_symbol,
+                    "to_currency": market
+                }
+            )
+
+            if isinstance(crypto_data, str):
+                return [types.TextContent(type="text", text=f"Error: {crypto_data}")]
+
+            formatted_rate = format_crypto_rate(crypto_data)
+            rate_text = f"Cryptocurrency exchange rate for {crypto_symbol}/{market}:\n\n{formatted_rate}"
+
+            return [types.TextContent(type="text", text=rate_text)]
+            
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
