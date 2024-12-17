@@ -17,22 +17,21 @@ A Message Control Protocol (MCP) server that provides real-time access to financ
 
 <summary>Development/Unpublished Servers Configuration</summary>
 
-```json{
+```json
     "mcpServers": {
-    "alpha-vantage-mcp": {
-        "command": "uv",
-        "args": [
-        "--directory",
-        "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
-        "run",
-        "alpha-vantage-mcp"
-        ],
-        "env": {
-        "ALPHA_VANTAGE_API_KEY": "<insert api key>"
+        "alpha-vantage-mcp": {
+            "command": "uv",
+            "args": [
+            "--directory",
+            "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
+            "run",
+            "alpha-vantage-mcp"
+            ],
+            "env": {
+            "ALPHA_VANTAGE_API_KEY": "<insert api key>"
+            }
         }
     }
-    }
-}
 ```
 
 
