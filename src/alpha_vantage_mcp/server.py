@@ -7,7 +7,9 @@ from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 
 ALPHA_VANTAGE_BASE = "https://www.alphavantage.co/query"
-API_KEY = "GTB2ZNZ3ELDFTUT4"  # Replace with your Alpha Vantage API key
+API_KEY = os.getenv('GITHUB_TOKEN') #"GTB2ZNZ3ELDFTUT4"  # Replace with your Alpha Vantage API key
+if not API_KEY:
+    raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
 
 server = Server("finance")
 

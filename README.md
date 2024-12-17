@@ -12,35 +12,34 @@ A Message Control Protocol (MCP) server that provides real-time access to financ
 
 ## Installation
 
-The package requires Python 3.12 or higher. Install it using pip:
+#### Claude Desktop
 
-```bash
-pip install alpha-vantage-mcp
-```
+- On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+- On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 
-## Configuration
+<details>
+  <summary>Development/Unpublished Servers Configuration</summary>
+  ```
+  "mcpServers": {
+    "alpha-vantage-mcp": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
+        "run",
+        "alpha-vantage-mcp"
+      ],
+      "env": {
+        "ALPHA_VANTAGE_API_KEY": "<insert api key>"
+      }
+    }
+  }
+  ```
+</details>
 
-Before using the server, you need to configure your Alpha Vantage API key. Replace the `API_KEY` constant in `server.py` with your own key:
-
-```python
-API_KEY = "your-api-key-here"  # Replace with your Alpha Vantage API key
-```
-
-You can obtain an API key from [Alpha Vantage's website](https://www.alphavantage.co/support/#api-key).
-
-## Usage
-
-The server can be started directly using the installed command:
-
-```bash
-alpha-vantage-mcp
-```
-
-Or run it as a module:
-
-```bash
-python -m alpha_vantage_mcp
-```
+### Running Locally
+After connecting Claude client with the MCP tool via json file, run the server:
+In alpha-vantage-mcp repo: `uv run src/alpha_vantage_mcp/server.py`
 
 ## Available Tools
 
@@ -119,34 +118,7 @@ Error messages are returned in a clear, human-readable format.
 
 ### Install
 
-#### Claude Desktop
 
-- On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
-- On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
-
-<details>
-  <summary>Development/Unpublished Servers Configuration</summary>
-  ```
-  "mcpServers": {
-    "alpha-vantage-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
-        "run",
-        "alpha-vantage-mcp"
-      ],
-      "env": {
-        "ALPHA_VANTAGE_API_KEY": "<insert api key>"
-      }
-    }
-  }
-  ```
-</details>
-
-## Running Locally
-
-In alpha-vantage-mcp repo: `uv run src/alpha_vantage_mcp/server.py`
 
 ## Contributing
 
