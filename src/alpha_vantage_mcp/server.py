@@ -14,7 +14,7 @@ API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY') ## Replace with your Alpha Vantage 
 # if not API_KEY:
 #     raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
 
-server = Server("finance")
+server = Server("alpha_vantage_finance")
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
@@ -197,7 +197,7 @@ async def main():
             read_stream,
             write_stream,
             InitializationOptions(
-                server_name="finance",
+                server_name="alpha_vantage_finance",
                 server_version="0.1.0",
                 capabilities=server.get_capabilities(
                     notification_options=NotificationOptions(),
