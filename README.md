@@ -42,10 +42,11 @@ In alpha-vantage-mcp repo: `uv run src/alpha_vantage_mcp/server.py`
 
 ## Available Tools
 
-The server implements three tools:
+The server implements four tools:
 - `get-stock-quote`: Get the latest stock quote for a specific company
 - `get-company-info`: Get stock-related information for a specific company
 - `get-crypto-exchange-rate`: Get current cryptocurrency exchange rates
+- `get-time-series`: Get historical daily price data for a stock
 
 ### get-stock-quote
 
@@ -126,6 +127,36 @@ Exchange Rate: 43521.45000
 Last Updated: 2024-12-17 19:45:00 UTC
 Bid Price: 43521.00000
 Ask Price: 43522.00000
+```
+
+### get-time-series
+
+Retrieves daily time series (OHLCV) data.
+
+**Input Schema:**
+```json
+{
+    "symbol": {
+        "type": "string",
+        "description": "Stock symbol (e.g., AAPL, MSFT)"
+    },
+    "outputsize": {
+        "type": "string",
+        "description": "compact (latest 100 data points) or full (up to 20 years of data)",
+        "default": "compact"
+    }
+}
+```
+**Example Response:**
+```
+Time Series Data for AAPL (Last Refreshed: 2024-12-17 16:00:00):
+
+Date: 2024-12-16
+Open: $195.09
+High: $197.68
+Low: $194.83
+Close: $197.57
+Volume: 55,751,011
 ```
 
 ## Error Handling

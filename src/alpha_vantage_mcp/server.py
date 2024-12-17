@@ -70,6 +70,26 @@ async def handle_list_tools() -> list[types.Tool]:
                 "required": ["crypto_symbol"],
             },
         ),
+        types.Tool(
+            name="get-time-series",
+            description="Get daily time series data for a stock",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol (e.g., AAPL, MSFT)",
+                    },
+                    "outputsize": {
+                        "type": "string",
+                        "description": "compact (latest 100 data points) or full (up to 20 years of data)",
+                        "enum": ["compact", "full"],
+                        "default": "compact"
+                    }
+                },
+                "required": ["symbol"],
+            },
+        )
     ]
 
 async def make_alpha_request(client: httpx.AsyncClient, function: str, symbol: str, additional_params: dict = None) -> dict[str, Any] | str:
@@ -172,6 +192,39 @@ def format_crypto_rate(crypto_data: dict) -> str:
     except Exception as e:
         return f"Error formatting cryptocurrency data: {str(e)}"
 
+def format_time_series(time_series_data: dict) -> str:
+    """Format time series data into a concise string."""
+    try:
+        # Get the daily time series data
+        time_series = time_series_data.get("Time Series (Daily)", {})
+        if not time_series:
+            return "No time series data available in the response"
+        
+        # Get metadata
+        metadata = time_series_data.get("Meta Data", {})
+        symbol = metadata.get("2. Symbol", "Unknown")
+        last_refreshed = metadata.get("3. Last Refreshed", "Unknown")
+        
+        # Format the most recent 5 days of data
+        formatted_data = [
+            f"Time Series Data for {symbol} (Last Refreshed: {last_refreshed})\n\n"
+        ]
+        
+        for date, values in list(time_series.items())[:5]:
+            formatted_data.append(
+                f"Date: {date}\n"
+                f"Open: ${values.get('1. open', 'N/A')}\n"
+                f"High: ${values.get('2. high', 'N/A')}\n"
+                f"Low: ${values.get('3. low', 'N/A')}\n"
+                f"Close: ${values.get('4. close', 'N/A')}\n"
+                f"Volume: {values.get('5. volume', 'N/A')}\n"
+                "---\n"
+            )
+        
+        return "\n".join(formatted_data)
+    except Exception as e:
+        return f"Error formatting time series data: {str(e)}"
+
 @server.call_tool()
 async def handle_call_tool(
     name: str, arguments: dict | None
@@ -255,6 +308,29 @@ async def handle_call_tool(
 
             return [types.TextContent(type="text", text=rate_text)]
             
+    elif name == "get-time-series":
+        symbol = arguments.get("symbol")
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+        outputsize = arguments.get("outputsize", "compact")
+        
+        async with httpx.AsyncClient() as client:
+            time_series_data = await make_alpha_request(
+                client,
+                "TIME_SERIES_DAILY",
+                symbol,
+                {"outputsize": outputsize}
+            )
+
+            if isinstance(time_series_data, str):
+                return [types.TextContent(type="text", text=f"Error: {time_series_data}")]
+
+            formatted_series = format_time_series(time_series_data)
+            series_text = f"Time series data for {symbol}:\n\n{formatted_series}"
+
+            return [types.TextContent(type="text", text=series_text)]
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
