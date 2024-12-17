@@ -15,25 +15,25 @@ A Message Control Protocol (MCP) server that provides real-time access to financ
 - On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 - On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 
-<details>
-  <summary>Development/Unpublished Servers Configuration</summary>
-  ```
-  "mcpServers": {
+<summary>Development/Unpublished Servers Configuration</summary>
+
+```json{
+    "mcpServers": {
     "alpha-vantage-mcp": {
-      "command": "uv",
-      "args": [
+        "command": "uv",
+        "args": [
         "--directory",
         "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
         "run",
         "alpha-vantage-mcp"
-      ],
-      "env": {
+        ],
+        "env": {
         "ALPHA_VANTAGE_API_KEY": "<insert api key>"
-      }
+        }
     }
-  }
-  ```
-</details>
+    }
+}```
+
 
 ### Running Locally
 After connecting Claude client with the MCP tool via json file, run the server:
