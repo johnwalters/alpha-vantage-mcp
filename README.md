@@ -6,9 +6,7 @@ A Message Control Protocol (MCP) server that provides real-time access to financ
 
 - Real-time stock quotes with price, volume, and change data
 - Detailed company information including sector, industry, and market cap
-- Standardized MCP interface for easy integration
 - Built-in error handling and rate limit management
-- Async implementation for efficient request handling
 
 ## Installation
 
@@ -43,9 +41,11 @@ In alpha-vantage-mcp repo: `uv run src/alpha_vantage_mcp/server.py`
 
 ## Available Tools
 
-### get-stock-quote
+The server implements two tools:
+- `get-stock-quote`: Get the latest stock quote for a specific company
+- `get-company-info`: Get stock-related information for a specific company
 
-Retrieves current stock quote information for a given symbol.
+### get-stock-quote
 
 **Input Schema:**
 ```json
@@ -107,18 +107,11 @@ The server includes comprehensive error handling for various scenarios:
 
 Error messages are returned in a clear, human-readable format.
 
-## Development
-
-### Prerequisites
+## Prerequisites
 
 - Python 3.12 or higher
 - httpx
 - mcp
-
-
-### Install
-
-
 
 ## Contributing
 

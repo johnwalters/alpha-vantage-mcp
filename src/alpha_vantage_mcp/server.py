@@ -5,11 +5,14 @@ from mcp.server.models import InitializationOptions
 import mcp.types as types
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
+import os
 
 ALPHA_VANTAGE_BASE = "https://www.alphavantage.co/query"
-API_KEY = os.getenv('GITHUB_TOKEN') #"GTB2ZNZ3ELDFTUT4"  # Replace with your Alpha Vantage API key
-if not API_KEY:
-    raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
+API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY') ## Replace with your Alpha Vantage API key for local development
+
+## Comment-out below two lines for local development 
+# if not API_KEY:
+#     raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
 
 server = Server("finance")
 
