@@ -28,7 +28,7 @@ A Message Control Protocol (MCP) server that provides real-time access to financ
             "alpha-vantage-mcp"
             ],
             "env": {
-            "ALPHA_VANTAGE_API_KEY": "<insert api key>"
+                "ALPHA_VANTAGE_API_KEY": "<insert api key>"
             }
         }
     }
