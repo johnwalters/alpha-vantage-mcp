@@ -32,7 +32,8 @@ A Message Control Protocol (MCP) server that provides real-time access to financ
         }
     }
     }
-}```
+}
+```
 
 
 ### Running Locally
