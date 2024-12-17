@@ -6,6 +6,7 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 - Real-time stock quotes with price, volume, and change data
 - Detailed company information including sector, industry, and market cap
+- Real-time cryptocurrency exchange rates with bid/ask prices
 - Built-in error handling and rate limit management
 
 ## Installation
@@ -41,9 +42,10 @@ In alpha-vantage-mcp repo: `uv run src/alpha_vantage_mcp/server.py`
 
 ## Available Tools
 
-The server implements two tools:
+The server implements three tools:
 - `get-stock-quote`: Get the latest stock quote for a specific company
 - `get-company-info`: Get stock-related information for a specific company
+- `get-crypto-exchange-rate`: Get current cryptocurrency exchange rates
 
 ### get-stock-quote
 
@@ -93,6 +95,37 @@ Market Cap: $3000000000000
 Description: Apple Inc. designs, manufactures, and markets smartphones...
 Exchange: NASDAQ
 Currency: USD
+```
+
+### get-crypto-exchange-rate
+
+Retrieves real-time cryptocurrency exchange rates with additional market data.
+
+**Input Schema:**
+```json
+{
+    "crypto_symbol": {
+        "type": "string",
+        "description": "Cryptocurrency symbol (e.g., BTC, ETH)"
+    },
+    "market": {
+        "type": "string",
+        "description": "Market currency (e.g., USD, EUR)",
+        "default": "USD"
+    }
+}
+```
+
+**Example Response:**
+```
+Cryptocurrency exchange rate for BTC/USD:
+
+From: Bitcoin (BTC)
+To: United States Dollar (USD)
+Exchange Rate: 43521.45000
+Last Updated: 2024-12-17 19:45:00 UTC
+Bid Price: 43521.00000
+Ask Price: 43522.00000
 ```
 
 ## Error Handling
