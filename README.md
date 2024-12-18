@@ -38,7 +38,10 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 ### Running Locally
 After connecting Claude client with the MCP tool via json file, run the server:
-In alpha-vantage-mcp repo: `uv run src/alpha_vantage_mcp/server.py`
+In alpha-vantage-mcp repo: 
+```
+uv run src/alpha_vantage_mcp/server.py
+```
 
 ## Available Tools
 
