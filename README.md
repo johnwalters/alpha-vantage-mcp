@@ -41,6 +41,7 @@ uv install -e .
 ```
 
 ### Running
+
 After connecting Claude client with the MCP tool via json file and installing the packages, Claude should see the server's mcp tools:
 
 You can run the sever yourself via:
