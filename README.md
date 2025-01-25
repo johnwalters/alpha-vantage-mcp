@@ -35,12 +35,23 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
     }
 ```
 
+### Install packages
+```
+uv install -e .
+```
 
 ### Running Locally
-After connecting Claude client with the MCP tool via json file, run the server:
+After connecting Claude client with the MCP tool via json file and installing the packages, claint should see the mcp tool:
+
+You can run the sever via:
 In alpha-vantage-mcp repo: 
 ```
 uv run src/alpha_vantage_mcp/server.py
+```
+
+with inspector
+```
+* npx @modelcontextprotocol/inspector uv --directory /Users/{INSERT_USER}/YOUR/PATH/TO/bluesky-mcp run src/alpha_vantage_mcp/server.py `
 ```
 
 ## Available Tools
