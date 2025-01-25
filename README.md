@@ -183,3 +183,7 @@ Error messages are returned in a clear, human-readable format.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+This MCP server is licensed under the MIT License. 
+This means you are free to use, modify, and distribute the software, subject to the terms and conditions of the MIT License. For more details, please see the LICENSE file in the project repository.
