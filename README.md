@@ -43,7 +43,7 @@ uv install -e .
 ### Running Locally
 After connecting Claude client with the MCP tool via json file and installing the packages, claint should see the mcp tool:
 
-You can run the sever via:
+You can run the sever yourself via:
 In alpha-vantage-mcp repo: 
 ```
 uv run src/alpha_vantage_mcp/server.py
