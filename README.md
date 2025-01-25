@@ -40,8 +40,9 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 uv install -e .
 ```
 
-### Running Locally
-After connecting Claude client with the MCP tool via json file and installing the packages, claint should see the mcp tool:
+### Running
+
+After connecting Claude client with the MCP tool via json file and installing the packages, Claude should see the server's mcp tools:
 
 You can run the sever yourself via:
 In alpha-vantage-mcp repo: 
