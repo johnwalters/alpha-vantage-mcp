@@ -52,7 +52,7 @@ uv run src/alpha_vantage_mcp/server.py
 
 with inspector
 ```
-* npx @modelcontextprotocol/inspector uv --directory /Users/{INSERT_USER}/YOUR/PATH/TO/bluesky-mcp run src/alpha_vantage_mcp/server.py `
+* npx @modelcontextprotocol/inspector uv --directory /Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp run src/alpha_vantage_mcp/server.py `
 ```
 
 ## Available Tools
