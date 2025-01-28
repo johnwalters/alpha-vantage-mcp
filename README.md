@@ -1,4 +1,5 @@
 # Alpha Vantage MCP Server
+[![smithery badge](https://smithery.ai/badge/@berlinbra/alpha-vantage-mcp)](https://smithery.ai/server/@berlinbra/alpha-vantage-mcp)
 
 A Model Context Protocol (MCP) server that provides real-time access to financial market data through the free [Alpha Vantage API](https://www.alphavantage.co/documentation/). This server implements a standardized interface for retrieving stock quotes and company information.
 
@@ -33,6 +34,14 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
             }
         }
     }
+```
+
+### Installing via Smithery
+
+To install Alpha Vantage MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@berlinbra/alpha-vantage-mcp):
+
+```bash
+npx -y @smithery/cli install @berlinbra/alpha-vantage-mcp --client claude
 ```
 
 ### Install packages
