@@ -170,3 +170,41 @@ async def make_request(client: httpx.AsyncClient, function: str, symbol: str, ad
         return f"HTTP error occurred: {str(e)} - Response: {e.response.text}"
     except Exception as e:
         return f"Unexpected error occurred: {str(e)}"
+
+def format_quote(quote_data: dict) -> str:
+    """Format quote data into a concise string."""
+    try:
+        global_quote = quote_data.get("Global Quote", {})
+        if not global_quote:
+            return "No quote data available in the response"
+            
+        return (
+            f"Price: ${global_quote.get('05. price', 'N/A')}\n"
+            f"Change: ${global_quote.get('09. change', 'N/A')} "
+            f"({global_quote.get('10. change percent', 'N/A')})\n"
+            f"Volume: {global_quote.get('06. volume', 'N/A')}\n"
+            f"High: ${global_quote.get('03. high', 'N/A')}\n"
+            f"Low: ${global_quote.get('04. low', 'N/A')}\n"
+            "---"
+        )
+    except Exception as e:
+        return f"Error formatting quote data: {str(e)}"
+
+def format_company_info(overview_data: dict) -> str:
+    """Format company information into a concise string."""
+    try:
+        if not overview_data:
+            return "No company information available in the response"
+            
+        return (
+            f"Name: {overview_data.get('Name', 'N/A')}\n"
+            f"Sector: {overview_data.get('Sector', 'N/A')}\n"
+            f"Industry: {overview_data.get('Industry', 'N/A')}\n"
+            f"Market Cap: ${overview_data.get('MarketCapitalization', 'N/A')}\n"
+            f"Description: {overview_data.get('Description', 'N/A')}\n"
+            f"Exchange: {overview_data.get('Exchange', 'N/A')}\n"
+            f"Currency: {overview_data.get('Currency', 'N/A')}\n"
+            "---"
+        )
+    except Exception as e:
+        return f"Error formatting company data: {str(e)}"
