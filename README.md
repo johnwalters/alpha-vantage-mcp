@@ -257,6 +257,11 @@ Error messages are returned in a clear, human-readable format.
 - httpx
 - mcp
 
+## Contributors
+
+- [berlinbra](https://github.com/berlinbra) - Project creator and maintainer
+- [zzulanas](https://github.com/zzulanas) - Historical options functionality
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
