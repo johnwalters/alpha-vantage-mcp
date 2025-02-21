@@ -9,6 +9,7 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 - Real-time stock quotes with price, volume, and change data
 - Detailed company information including sector, industry, and market cap
 - Real-time cryptocurrency exchange rates with bid/ask prices
+- Historical options chain data with advanced filtering and sorting
 - Built-in error handling and rate limit management
 
 ## Installation
@@ -59,11 +60,12 @@ with inspector
 
 ## Available Tools
 
-The server implements four tools:
+The server implements five tools:
 - `get-stock-quote`: Get the latest stock quote for a specific company
 - `get-company-info`: Get stock-related information for a specific company
 - `get-crypto-exchange-rate`: Get current cryptocurrency exchange rates
 - `get-time-series`: Get historical daily price data for a stock
+- `get-historical-options`: Get historical options chain data with sorting capabilities
 
 ### get-stock-quote
 
@@ -176,6 +178,67 @@ Close: $197.57
 Volume: 55,751,011
 ```
 
+### get-historical-options
+
+Retrieves historical options chain data with advanced sorting and filtering capabilities.
+
+**Input Schema:**
+```json
+{
+    "symbol": {
+        "type": "string",
+        "description": "Stock symbol (e.g., AAPL, MSFT)"
+    },
+    "date": {
+        "type": "string",
+        "description": "Optional: Trading date in YYYY-MM-DD format (defaults to previous trading day, must be after 2008-01-01)",
+        "pattern": "^20[0-9]{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$"
+    },
+    "limit": {
+        "type": "integer",
+        "description": "Optional: Number of contracts to return (default: 10, use -1 for all contracts)",
+        "default": 10,
+        "minimum": -1
+    },
+    "sort_by": {
+        "type": "string",
+        "description": "Optional: Field to sort by",
+        "enum": ["strike", "expiration", "volume", "open_interest", "implied_volatility", "delta", "gamma", "theta", "vega", "rho", "last", "bid", "ask"],
+        "default": "strike"
+    },
+    "sort_order": {
+        "type": "string",
+        "description": "Optional: Sort order",
+        "enum": ["asc", "desc"],
+        "default": "asc"
+    }
+}
+```
+
+**Example Response:**
+```
+Historical Options Data for AAPL (2024-02-20):
+
+Contract 1:
+Strike: $190.00
+Expiration: 2024-03-15
+Last: $8.45
+Bid: $8.40
+Ask: $8.50
+Volume: 1245
+Open Interest: 4567
+Implied Volatility: 0.25
+Greeks:
+  Delta: 0.65
+  Gamma: 0.04
+  Theta: -0.15
+  Vega: 0.30
+  Rho: 0.25
+
+Contract 2:
+...
+```
+
 ## Error Handling
 
 The server includes comprehensive error handling for various scenarios:
@@ -193,6 +256,11 @@ Error messages are returned in a clear, human-readable format.
 - Python 3.12 or higher
 - httpx
 - mcp
+
+## Contributors
+
+- [berlinbra](https://github.com/berlinbra)
+- [zzulanas](https://github.com/zzulanas)
 
 ## Contributing
 
