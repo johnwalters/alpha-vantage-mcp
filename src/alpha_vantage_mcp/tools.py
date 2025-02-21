@@ -1,4 +1,6 @@
 """Tools module for Alpha Vantage MCP server."""
+from typing import Any
+import httpx
 import mcp.types as types
 import os
 
@@ -127,3 +129,44 @@ def get_tool_list() -> list[types.Tool]:
             },
         )
     ]
+
+async def make_request(client: httpx.AsyncClient, function: str, symbol: str, additional_params: dict = None) -> dict[str, Any] | str:
+    """Make a request to the Alpha Vantage API with proper error handling."""
+    params = {
+        "function": function,
+        "symbol": symbol,
+        "apikey": API_KEY
+    }
+    if additional_params:
+        params.update(additional_params)
+
+    try:
+        response = await client.get(
+            ALPHA_VANTAGE_BASE,
+            params=params,
+            timeout=30.0
+        )
+        
+        if response.status_code == 429:
+            return f"Rate limit exceeded. Error details: {response.text}"
+        elif response.status_code == 403:
+            return f"API key invalid or expired. Error details: {response.text}"
+        
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if "Error Message" in data:
+            return f"Alpha Vantage API error: {data['Error Message']}"
+        if "Note" in data and "API call frequency" in data["Note"]:
+            return f"Rate limit warning: {data['Note']}"
+            
+        return data
+    except httpx.TimeoutException:
+        return "Request timed out after 30 seconds. The Alpha Vantage API may be experiencing delays."
+    except httpx.ConnectError:
+        return "Failed to connect to Alpha Vantage API. Please check your internet connection."
+    except httpx.HTTPStatusError as e:
+        return f"HTTP error occurred: {str(e)} - Response: {e.response.text}"
+    except Exception as e:
+        return f"Unexpected error occurred: {str(e)}"
