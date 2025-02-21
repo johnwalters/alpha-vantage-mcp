@@ -1,6 +1,4 @@
 """Tools module for Alpha Vantage MCP server."""
-from typing import Any
-import httpx
 import mcp.types as types
 import os
 
