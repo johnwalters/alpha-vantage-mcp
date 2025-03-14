@@ -5,7 +5,7 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 <a href="https://glama.ai/mcp/servers/0wues5td08"><img width="380" height="200" src="https://glama.ai/mcp/servers/0wues5td08/badge" alt="AlphaVantage-MCP MCP server" /></a>
 
-## Features
+# Features
 
 - Real-time stock quotes with price, volume, and change data
 - Detailed company information including sector, industry, and market cap
@@ -15,9 +15,9 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 ## Installation
 
-## Using Claude Desktop
+### Using Claude Desktop
 
-### Installing via Docker
+#### Installing via Docker
 
 - Clone the repository and build a local image to be utilized by your Claude desktop client
 
@@ -53,7 +53,7 @@ docker build -t mcp/alpha-vantage .
 }
 ```
 
-### Installing via Smithery
+#### Installing via Smithery
 
 To install Alpha Vantage MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@berlinbra/alpha-vantage-mcp):
 
@@ -86,13 +86,13 @@ npx -y @smithery/cli install @berlinbra/alpha-vantage-mcp --client claude
         
 </details>
 
-### Install packages
+#### Install packages
 
 ```
 uv install -e .
 ```
 
-### Running
+#### Running
 
 After connecting Claude client with the MCP tool via json file and installing the packages, Claude should see the server's mcp tools:
 
