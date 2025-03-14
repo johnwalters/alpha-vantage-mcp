@@ -15,28 +15,42 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 ## Installation
 
-#### Claude Desktop
+## Using Claude Desktop
 
-- On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
-- On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+### Installing via Docker
 
-<summary>Development/Unpublished Servers Configuration</summary>
+- Clone the repository and build a local image to be utilized by your Claude desktop client
+
+```sh
+cd alpha-vantage-mcp
+docker build -t mcp/alpha-vantage .
+```
+
+- Change your `claude_desktop_config.json` to match the following, replacing `REPLACE_API_KEY` with your actual key:
+
+ > `claude_desktop_config.json` path
+ >
+ > - On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+ > - On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
-    "mcpServers": {
-        "alpha-vantage-mcp": {
-            "command": "uv",
-            "args": [
-            "--directory",
-            "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
-            "run",
-            "alpha-vantage-mcp"
-            ],
-            "env": {
-                "ALPHA_VANTAGE_API_KEY": "<insert api key>"
-            }
-        }
+{
+  "mcpServers": {
+    "alphavantage": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "-e",
+        "ALPHA_VANTAGE_API_KEY",
+        "mcp/alpha-vantage"
+      ],
+      "env": {
+        "ALPHA_VANTAGE_API_KEY": "REPLACE_API_KEY"
+      }
     }
+  }
+}
 ```
 
 ### Installing via Smithery
@@ -47,7 +61,33 @@ To install Alpha Vantage MCP Server for Claude Desktop automatically via [Smithe
 npx -y @smithery/cli install @berlinbra/alpha-vantage-mcp --client claude
 ```
 
+<summary> <h3> Development/Unpublished Servers Configuration <h3> </summary>
+
+<details>
+
+```json
+{
+ "mcpServers": {
+  "alpha-vantage-mcp": {
+   "args": [
+    "--directory",
+    "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
+    "run",
+    "alpha-vantage-mcp"
+   ],
+   "command": "uv",
+   "env": {
+    "ALPHA_VANTAGE_API_KEY": "<insert api key>"
+   }
+  }
+ }
+}
+```
+        
+</details>
+
 ### Install packages
+
 ```
 uv install -e .
 ```
