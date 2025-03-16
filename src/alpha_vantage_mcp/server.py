@@ -36,9 +36,7 @@ from .institutional_data import (
 )
 
 from .futures_strategy import (
-    analyze_futures_trade_setup,
-    get_day_of_week_edge,
-    get_intraday_timing_edge
+    analyze_futures_trade_setup
 )
 
 if not API_KEY:
@@ -224,21 +222,6 @@ async def handle_list_tools() -> list[types.Tool]:
                         "default": 10,
                         "minimum": 1,
                         "maximum": 20
-                    }
-                },
-                "required": ["symbol"],
-            },
-        ),
-        
-        types.Tool(
-            name="get-timing-edge",
-            description="Get timing edge information for optimal trade entry",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "symbol": {
-                        "type": "string",
-                        "description": "Stock symbol (e.g., AAPL, MSFT)",
                     }
                 },
                 "required": ["symbol"],
@@ -477,58 +460,7 @@ async def handle_call_tool(
         
         except Exception as e:
             return [types.TextContent(type="text", text=f"Error analyzing futures trade setup: {str(e)}")]
-            
-    elif name == "get-timing-edge":
-        symbol = arguments.get("symbol")
-        if not symbol:
-            return [types.TextContent(type="text", text="Missing symbol parameter")]
 
-        symbol = symbol.upper()
-
-        try:
-            async with httpx.AsyncClient() as client:
-                # Get day of week edge
-                day_edge = await get_day_of_week_edge()
-                
-                # Get intraday timing edge
-                intraday_edge = await get_intraday_timing_edge(client, symbol)
-                
-                # Format the report
-                current_day = day_edge["current_day"]
-                day_edge_value = day_edge["current_day_edge"]
-                recommended_day = "Yes" if day_edge["recommended_day"] else "No"
-                
-                current_time = intraday_edge.get("current_time", "Unknown")
-                market_open = "Yes" if intraday_edge.get("market_is_open", False) else "No"
-                optimal_time = "Yes" if intraday_edge.get("optimal_entry_time", False) else "No"
-                pullback = "Yes" if intraday_edge.get("pullback_detected", False) else "No"
-                entry_recommended = "Yes" if intraday_edge.get("entry_recommended", False) else "No"
-                
-                report = [
-                    "TIMING EDGE ANALYSIS",
-                    "===================",
-                    "",
-                    f"Day of Week: {current_day}",
-                    f"Day Edge Value: {day_edge_value:.2f}x",
-                    f"Recommended Trading Day: {recommended_day}",
-                    "",
-                    f"Current Time: {current_time}",
-                    f"Market Open: {market_open}",
-                    f"Optimal Time Window: {optimal_time}",
-                    f"Recent Pullback Detected: {pullback}",
-                    f"Entry Timing Recommended: {entry_recommended}",
-                    "",
-                    "NOTES:",
-                    "- Optimal trading days are Tuesday and Wednesday",
-                    "- Avoid trading in the first 30 minutes and last 60 minutes of the session",
-                    "- Enter on pullbacks after the trend is established",
-                    "- Use 70%/30% split entry approach"
-                ]
-                
-                return [types.TextContent(type="text", text="\n".join(report))]
-        
-        except Exception as e:
-            return [types.TextContent(type="text", text=f"Error analyzing timing edge: {str(e)}")]
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
