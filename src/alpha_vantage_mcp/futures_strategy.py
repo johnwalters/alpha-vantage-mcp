@@ -55,3 +55,75 @@ async def get_day_of_week_edge() -> Dict[str, Any]:
         "recommended_day": day_edge[today]["recommended"],
         "day_edge_data": day_edge
     }
+
+
+async def get_intraday_timing_edge(client: httpx.AsyncClient, symbol: str) -> Dict[str, Any]:
+    """
+    Analyze intraday patterns for optimal entry timing.
+    
+    Args:
+        client: httpx.AsyncClient instance
+        symbol: Stock symbol
+        
+    Returns:
+        Dictionary with intraday timing analysis
+    """
+    # Get intraday data
+    try:
+        df = await get_price_data(client, symbol, interval="15min", outputsize="compact")
+        
+        # Get current market time
+        now = datetime.now().time()
+        market_open = time(9, 30)
+        market_close = time(16, 0)
+        
+        # Check if market is open
+        market_is_open = market_open <= now <= market_close
+        
+        # Avoid first 30 minutes and last 60 minutes
+        avoid_first_30min = now < time(10, 0)
+        avoid_last_60min = now > time(15, 0)
+        
+        optimal_entry_time = not (avoid_first_30min or avoid_last_60min) and market_is_open
+        
+        # Identify recent pullbacks for entry
+        if not df.empty and len(df) > 5:
+            # Calculate 5-period moving average
+            df['ma5'] = df['close'].rolling(window=5).mean()
+            
+            # Identify trend
+            uptrend = df['close'].iloc[1] > df['ma5'].iloc[1]
+            
+            # Look for pullback (price below 5-period MA in uptrend or above in downtrend)
+            pullback = (uptrend and df['close'].iloc[0] < df['ma5'].iloc[0]) or \
+                      (not uptrend and df['close'].iloc[0] > df['ma5'].iloc[0])
+            
+            return {
+                "market_is_open": market_is_open,
+                "optimal_entry_time": optimal_entry_time,
+                "avoid_first_30min": avoid_first_30min,
+                "avoid_last_60min": avoid_last_60min,
+                "current_time": now.strftime("%H:%M"),
+                "uptrend_detected": uptrend,
+                "pullback_detected": pullback,
+                "entry_recommended": optimal_entry_time and pullback
+            }
+        
+        return {
+            "market_is_open": market_is_open,
+            "optimal_entry_time": optimal_entry_time,
+            "avoid_first_30min": avoid_first_30min,
+            "avoid_last_60min": avoid_last_60min,
+            "current_time": now.strftime("%H:%M"),
+            "uptrend_detected": None,
+            "pullback_detected": None,
+            "entry_recommended": False
+        }
+    
+    except Exception as e:
+        return {
+            "error": str(e),
+            "market_is_open": False,
+            "optimal_entry_time": False,
+            "entry_recommended": False
+        }
