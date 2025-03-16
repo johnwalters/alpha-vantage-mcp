@@ -9,7 +9,7 @@ from typing import Dict, List, Any, Tuple, Optional
 import httpx
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 
 # Import local modules
 from .technical_indicators import (
@@ -27,107 +27,6 @@ from .institutional_data import (
     analyze_institutional_activity,
     format_institutional_analysis
 )
-
-
-async def get_day_of_week_edge() -> Dict[str, Any]:
-    """
-    Get day-of-week edge statistics based on historical pattern analysis.
-    
-    Returns:
-        Dictionary with day-of-week analysis
-    """
-    # These values are based on analysis of historical data
-    # showing better mean reversion trading results on Tuesday and Wednesday
-    day_edge = {
-        0: {"day": "Monday", "edge": 0.85, "recommended": False},
-        1: {"day": "Tuesday", "edge": 1.15, "recommended": True},
-        2: {"day": "Wednesday", "edge": 1.25, "recommended": True},
-        3: {"day": "Thursday", "edge": 0.95, "recommended": False},
-        4: {"day": "Friday", "edge": 0.80, "recommended": False}
-    }
-    
-    # Get current day
-    today = datetime.now().weekday()
-    
-    return {
-        "current_day": day_edge[today]["day"],
-        "current_day_edge": day_edge[today]["edge"],
-        "recommended_day": day_edge[today]["recommended"],
-        "day_edge_data": day_edge
-    }
-
-
-async def get_intraday_timing_edge(client: httpx.AsyncClient, symbol: str) -> Dict[str, Any]:
-    """
-    Analyze intraday patterns for optimal entry timing.
-    
-    Args:
-        client: httpx.AsyncClient instance
-        symbol: Stock symbol
-        
-    Returns:
-        Dictionary with intraday timing analysis
-    """
-    # Get intraday data
-    try:
-        df = await get_price_data(client, symbol, interval="15min", outputsize="compact")
-        
-        # Get current market time
-        now = datetime.now().time()
-        market_open = time(9, 30)
-        market_close = time(16, 0)
-        
-        # Check if market is open
-        market_is_open = market_open <= now <= market_close
-        
-        # Avoid first 30 minutes and last 60 minutes
-        avoid_first_30min = now < time(10, 0)
-        avoid_last_60min = now > time(15, 0)
-        
-        optimal_entry_time = not (avoid_first_30min or avoid_last_60min) and market_is_open
-        
-        # Identify recent pullbacks for entry
-        if not df.empty and len(df) > 5:
-            # Calculate 5-period moving average
-            df['ma5'] = df['close'].rolling(window=5).mean()
-            
-            # Identify trend
-            uptrend = df['close'].iloc[1] > df['ma5'].iloc[1]
-            
-            # Look for pullback (price below 5-period MA in uptrend or above in downtrend)
-            pullback = (uptrend and df['close'].iloc[0] < df['ma5'].iloc[0]) or \
-                      (not uptrend and df['close'].iloc[0] > df['ma5'].iloc[0])
-            
-            return {
-                "market_is_open": market_is_open,
-                "optimal_entry_time": optimal_entry_time,
-                "avoid_first_30min": avoid_first_30min,
-                "avoid_last_60min": avoid_last_60min,
-                "current_time": now.strftime("%H:%M"),
-                "uptrend_detected": uptrend,
-                "pullback_detected": pullback,
-                "entry_recommended": optimal_entry_time and pullback
-            }
-        
-        return {
-            "market_is_open": market_is_open,
-            "optimal_entry_time": optimal_entry_time,
-            "avoid_first_30min": avoid_first_30min,
-            "avoid_last_60min": avoid_last_60min,
-            "current_time": now.strftime("%H:%M"),
-            "uptrend_detected": None,
-            "pullback_detected": None,
-            "entry_recommended": False
-        }
-    
-    except Exception as e:
-        return {
-            "error": str(e),
-            "market_is_open": False,
-            "optimal_entry_time": False,
-            "entry_recommended": False
-        }
-
 
 async def analyze_futures_trade_setup(
     client: httpx.AsyncClient,
@@ -175,11 +74,7 @@ async def analyze_futures_trade_setup(
         # Step 5: Analyze institutional activity
         institutional_analysis = await analyze_institutional_activity(client, symbol)
         
-        # Step 6: Get timing information
-        day_edge = await get_day_of_week_edge()
-        intraday_edge = await get_intraday_timing_edge(client, symbol)
-        
-        # Step 7: Calculate position size if setup is valid
+        # Step 6: Calculate position size if setup is valid
         if setup_report["ready_to_trade"]:
             position_sizing = calculate_position_size(
                 account_value=account_value,
@@ -191,18 +86,13 @@ async def analyze_futures_trade_setup(
         else:
             position_sizing = None
         
-        # Step 8: Combine all analysis
+        # Step 7: Combine all analysis
         trade_signal = setup_report["ready_to_trade"] and institutional_analysis["institutional_activity_detected"]
         
         # Final recommendation
         if trade_signal:
             direction = setup_report["recommendation"]
-            timing_good = day_edge["recommended_day"] and intraday_edge["entry_recommended"]
-            
-            if timing_good:
-                recommendation = f"ENTER {direction} POSITION NOW"
-            else:
-                recommendation = f"SETUP VALID FOR {direction}, BUT TIMING IS SUBOPTIMAL"
+            recommendation = f"ENTER {direction} POSITION"
         else:
             recommendation = "NO TRADE SETUP DETECTED"
         
@@ -215,10 +105,6 @@ async def analyze_futures_trade_setup(
             "technical_analysis": setup_report,
             "institutional_analysis": institutional_analysis,
             "market_condition": market_condition,
-            "timing_analysis": {
-                "day_of_week": day_edge,
-                "intraday_timing": intraday_edge
-            },
             "position_sizing": position_sizing
         }
         
@@ -255,7 +141,6 @@ def format_complete_analysis(analysis: Dict[str, Any]) -> str:
     # Get individual analysis components
     technical = analysis["technical_analysis"]
     institutional = analysis["institutional_analysis"]
-    timing = analysis["timing_analysis"]
     position = analysis["position_sizing"]
     
     # Format header
@@ -287,11 +172,12 @@ def format_complete_analysis(analysis: Dict[str, Any]) -> str:
         lines.append(f"Block Trades: {institutional['block_trade_analysis']['recent_block_trades']}")
     lines.append("")
     
-    # Format timing analysis
-    lines.append("ENTRY TIMING ANALYSIS:")
-    lines.append(f"Day of Week: {timing['day_of_week']['current_day']} (Edge: {timing['day_of_week']['current_day_edge']:.2f}x)")
-    lines.append(f"Optimal Time: {'Yes' if timing['intraday_timing']['optimal_entry_time'] else 'No'}")
-    lines.append(f"Pullback Detected: {'Yes' if timing['intraday_timing'].get('pullback_detected', False) else 'No'}")
+    # Format market condition analysis
+    lines.append("MARKET CONDITION ANALYSIS:")
+    market = analysis["market_condition"]
+    lines.append(f"VIX Change: {market['vix_2day_change']:.2f}%")
+    lines.append(f"Sector Performance: {market['sector_performance']:.2f}%")
+    lines.append(f"S&P 500 Above MA(20): {'Yes' if market['sp500_above_ma'] else 'No'}")
     lines.append("")
     
     # Format position sizing (if available)
