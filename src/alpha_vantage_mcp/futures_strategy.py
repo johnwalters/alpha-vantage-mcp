@@ -206,7 +206,7 @@ async def analyze_futures_trade_setup(
         else:
             recommendation = "NO TRADE SETUP DETECTED"
         
-        return {
+        result = {
             "symbol": symbol,
             "timestamp": datetime.now().isoformat(),
             "price": asset_df['close'].iloc[0],
@@ -221,6 +221,11 @@ async def analyze_futures_trade_setup(
             },
             "position_sizing": position_sizing
         }
+        
+        # Add formatted report
+        result["formatted_report"] = format_complete_analysis(result)
+        
+        return result
     
     except Exception as e:
         return {
@@ -229,3 +234,90 @@ async def analyze_futures_trade_setup(
             "trade_signal": False,
             "recommendation": "ERROR IN ANALYSIS"
         }
+
+
+def format_complete_analysis(analysis: Dict[str, Any]) -> str:
+    """
+    Format the complete analysis into a comprehensive report.
+    
+    Args:
+        analysis: Dictionary with complete analysis
+        
+    Returns:
+        Formatted string with complete analysis report
+    """
+    symbol = analysis["symbol"]
+    price = analysis["price"]
+    timestamp = analysis["timestamp"]
+    recommendation = analysis["recommendation"]
+    trade_signal = analysis["trade_signal"]
+    
+    # Get individual analysis components
+    technical = analysis["technical_analysis"]
+    institutional = analysis["institutional_analysis"]
+    timing = analysis["timing_analysis"]
+    position = analysis["position_sizing"]
+    
+    # Format header
+    lines = [
+        f"========= STATISTICAL FUTURES TRADING ANALYSIS =========",
+        f"SYMBOL: {symbol} | PRICE: ${price:.2f} | DATE: {timestamp}",
+        f"",
+        f"RECOMMENDATION: {recommendation}",
+        f"",
+        f"{'=' * 56}",
+        f""
+    ]
+    
+    # Format technical analysis
+    lines.append("TECHNICAL SETUP ANALYSIS:")
+    lines.append(f"Criteria Met: {technical['confirmed_count']}/{technical['needed_count']}")
+    lines.append(f"Mean Reversion Score: {technical['technical_data']['mean_reversion_score']:.2f}")
+    lines.append(f"RSI(2): {technical['technical_data']['rsi2']:.2f}")
+    lines.append(f"ATR Ratio: {technical['technical_data']['atr_ratio']:.2f}x")
+    lines.append("")
+    
+    # Format institutional analysis
+    lines.append("INSTITUTIONAL ACTIVITY ANALYSIS:")
+    lines.append(f"Activity Detected: {'Yes' if institutional['institutional_activity_detected'] else 'No'}")
+    lines.append(f"Directional Bias: {institutional['directional_bias'].upper()}")
+    if 'options_flow_analysis' in institutional and 'call_put_ratio' in institutional['options_flow_analysis']:
+        lines.append(f"Call/Put Ratio: {institutional['options_flow_analysis']['call_put_ratio']:.2f}")
+    if 'block_trade_analysis' in institutional and 'recent_block_trades' in institutional['block_trade_analysis']:
+        lines.append(f"Block Trades: {institutional['block_trade_analysis']['recent_block_trades']}")
+    lines.append("")
+    
+    # Format timing analysis
+    lines.append("ENTRY TIMING ANALYSIS:")
+    lines.append(f"Day of Week: {timing['day_of_week']['current_day']} (Edge: {timing['day_of_week']['current_day_edge']:.2f}x)")
+    lines.append(f"Optimal Time: {'Yes' if timing['intraday_timing']['optimal_entry_time'] else 'No'}")
+    lines.append(f"Pullback Detected: {'Yes' if timing['intraday_timing'].get('pullback_detected', False) else 'No'}")
+    lines.append("")
+    
+    # Format position sizing (if available)
+    if position:
+        lines.append("POSITION SIZING:")
+        lines.append(f"Account Value: ${position['account_value']:.2f}")
+        lines.append(f"Risk Amount: ${position['max_risk_amount']:.2f} ({position['max_loss_percent']:.1f}% of account)")
+        lines.append(f"Leverage: {position['leverage']:.1f}x")
+        lines.append(f"Initial Entry: {position['initial_contracts']} contracts (70%)")
+        lines.append(f"Secondary Entry: {position['secondary_contracts']} contracts (30%)")
+        lines.append(f"Stop Loss: ${position['stop_loss_price']:.2f}")
+        lines.append(f"Target Price: ${position['target_price']:.2f}")
+        lines.append(f"Risk/Reward: {position['risk_reward_ratio']:.2f}")
+        lines.append("")
+    
+    # Format trade execution instructions
+    lines.append("TRADE EXECUTION INSTRUCTIONS:")
+    if trade_signal:
+        direction = technical["recommendation"]
+        lines.append(f"1. Enter {direction} position using 70% of allocated contracts")
+        lines.append(f"2. Use limit orders 0.2% {'below' if direction == 'LONG' else 'above'} current price")
+        lines.append(f"3. Set stop loss at ${position['stop_loss_price'] if position else 'N/A'}")
+        lines.append(f"4. Set take profit at ${position['target_price'] if position else 'N/A'}")
+        lines.append(f"5. Set max holding period of 5 days")
+        lines.append(f"6. Consider adding remaining 30% on first pullback")
+    else:
+        lines.append("No valid setup detected. Continue monitoring.")
+    
+    return "\n".join(lines)
