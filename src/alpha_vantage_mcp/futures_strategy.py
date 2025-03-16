@@ -127,3 +127,105 @@ async def get_intraday_timing_edge(client: httpx.AsyncClient, symbol: str) -> Di
             "optimal_entry_time": False,
             "entry_recommended": False
         }
+
+
+async def analyze_futures_trade_setup(
+    client: httpx.AsyncClient,
+    symbol: str,
+    account_value: float,
+    leverage: float = 10.0
+) -> Dict[str, Any]:
+    """
+    Complete analysis of a futures trade setup based on the statistical checklist.
+    
+    Args:
+        client: httpx.AsyncClient instance
+        symbol: Stock symbol
+        account_value: Trading account value
+        leverage: Leverage multiplier
+        
+    Returns:
+        Dictionary with complete trade setup analysis
+    """
+    try:
+        # Step 1: Get market condition data
+        vix_df = await get_vix_data(client)
+        sp500_df = await get_price_data(client, "^GSPC")
+        sector_data = await get_sector_performance(client)
+        stock_sector = await get_stock_sector(client, symbol)
+        
+        # Step 2: Get asset-specific data
+        asset_df = await get_price_data(client, symbol)
+        
+        # Step 3: Analyze market conditions
+        market_condition = analyze_market_condition(
+            sp500_df,
+            vix_df,
+            sector_data,
+            stock_sector
+        )
+        
+        # Step 4: Generate technical setup report
+        setup_report = generate_setup_report(
+            symbol,
+            asset_df,
+            market_condition
+        )
+        
+        # Step 5: Analyze institutional activity
+        institutional_analysis = await analyze_institutional_activity(client, symbol)
+        
+        # Step 6: Get timing information
+        day_edge = await get_day_of_week_edge()
+        intraday_edge = await get_intraday_timing_edge(client, symbol)
+        
+        # Step 7: Calculate position size if setup is valid
+        if setup_report["ready_to_trade"]:
+            position_sizing = calculate_position_size(
+                account_value=account_value,
+                entry_price=asset_df['close'].iloc[0],
+                stop_loss_percent=7.0,
+                risk_percent=3.0,
+                leverage=leverage
+            )
+        else:
+            position_sizing = None
+        
+        # Step 8: Combine all analysis
+        trade_signal = setup_report["ready_to_trade"] and institutional_analysis["institutional_activity_detected"]
+        
+        # Final recommendation
+        if trade_signal:
+            direction = setup_report["recommendation"]
+            timing_good = day_edge["recommended_day"] and intraday_edge["entry_recommended"]
+            
+            if timing_good:
+                recommendation = f"ENTER {direction} POSITION NOW"
+            else:
+                recommendation = f"SETUP VALID FOR {direction}, BUT TIMING IS SUBOPTIMAL"
+        else:
+            recommendation = "NO TRADE SETUP DETECTED"
+        
+        return {
+            "symbol": symbol,
+            "timestamp": datetime.now().isoformat(),
+            "price": asset_df['close'].iloc[0],
+            "trade_signal": trade_signal,
+            "recommendation": recommendation,
+            "technical_analysis": setup_report,
+            "institutional_analysis": institutional_analysis,
+            "market_condition": market_condition,
+            "timing_analysis": {
+                "day_of_week": day_edge,
+                "intraday_timing": intraday_edge
+            },
+            "position_sizing": position_sizing
+        }
+    
+    except Exception as e:
+        return {
+            "error": str(e),
+            "symbol": symbol,
+            "trade_signal": False,
+            "recommendation": "ERROR IN ANALYSIS"
+        }
