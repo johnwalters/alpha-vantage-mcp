@@ -19,6 +19,28 @@ from .tools import (
     API_KEY
 )
 
+# Import functions from technical_indicators.py and futures_strategy.py
+from .technical_indicators import (
+    get_price_data,
+    get_vix_data,
+    get_sector_performance,
+    get_stock_sector,
+    analyze_market_condition,
+    generate_setup_report,
+    format_analysis_report
+)
+
+from .institutional_data import (
+    analyze_institutional_activity,
+    format_institutional_analysis
+)
+
+from .futures_strategy import (
+    analyze_futures_trade_setup,
+    get_day_of_week_edge,
+    get_intraday_timing_edge
+)
+
 if not API_KEY:
     raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
 
@@ -144,6 +166,79 @@ async def handle_list_tools() -> list[types.Tool]:
                         "description": "Optional: Sort order",
                         "enum": ["asc", "desc"],
                         "default": "asc"
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        
+        # New futures strategy tools
+        types.Tool(
+            name="analyze-technical-setup",
+            description="Analyze technical setup for statistical mean reversion trading",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol (e.g., AAPL, MSFT)",
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        
+        types.Tool(
+            name="analyze-institutional-activity",
+            description="Analyze institutional activity including options flow and block trades",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol (e.g., AAPL, MSFT)",
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        
+        types.Tool(
+            name="analyze-futures-trade-setup",
+            description="Complete analysis of futures trade setup based on the statistical checklist",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol (e.g., AAPL, MSFT)",
+                    },
+                    "account_value": {
+                        "type": "number",
+                        "description": "Trading account value in dollars",
+                        "default": 100000
+                    },
+                    "leverage": {
+                        "type": "number",
+                        "description": "Leverage multiplier (e.g., 10 for 10x leverage)",
+                        "default": 10,
+                        "minimum": 1,
+                        "maximum": 20
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        
+        types.Tool(
+            name="get-timing-edge",
+            description="Get timing edge information for optimal trade entry",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol (e.g., AAPL, MSFT)",
                     }
                 },
                 "required": ["symbol"],
@@ -292,6 +387,148 @@ async def handle_call_tool(
             options_text += f":\n\n{formatted_options}"
 
             return [types.TextContent(type="text", text=options_text)]
+            
+    # New futures strategy handlers
+    elif name == "analyze-technical-setup":
+        symbol = arguments.get("symbol")
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+
+        try:
+            async with httpx.AsyncClient() as client:
+                # Get market condition data
+                vix_df = await get_vix_data(client)
+                sp500_df = await get_price_data(client, "^GSPC")
+                sector_data = await get_sector_performance(client)
+                stock_sector = await get_stock_sector(client, symbol)
+                
+                # Get asset-specific data
+                asset_df = await get_price_data(client, symbol)
+                
+                # Analyze market conditions
+                market_condition = analyze_market_condition(
+                    sp500_df,
+                    vix_df,
+                    sector_data,
+                    stock_sector
+                )
+                
+                # Generate setup report
+                setup_report = generate_setup_report(
+                    symbol,
+                    asset_df,
+                    market_condition
+                )
+                
+                # Format the report
+                formatted_report = format_analysis_report(setup_report)
+                
+                return [types.TextContent(type="text", text=formatted_report)]
+        
+        except Exception as e:
+            return [types.TextContent(type="text", text=f"Error analyzing technical setup: {str(e)}")]
+            
+    elif name == "analyze-institutional-activity":
+        symbol = arguments.get("symbol")
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+
+        try:
+            async with httpx.AsyncClient() as client:
+                # Analyze institutional activity
+                institutional_analysis = await analyze_institutional_activity(client, symbol)
+                
+                # Format the report
+                formatted_report = format_institutional_analysis(institutional_analysis)
+                
+                return [types.TextContent(type="text", text=formatted_report)]
+        
+        except Exception as e:
+            return [types.TextContent(type="text", text=f"Error analyzing institutional activity: {str(e)}")]
+            
+    elif name == "analyze-futures-trade-setup":
+        symbol = arguments.get("symbol")
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+        account_value = float(arguments.get("account_value", 100000))
+        leverage = float(arguments.get("leverage", 10))
+
+        try:
+            async with httpx.AsyncClient() as client:
+                # Complete futures trade setup analysis
+                analysis = await analyze_futures_trade_setup(
+                    client,
+                    symbol,
+                    account_value,
+                    leverage
+                )
+                
+                if "error" in analysis:
+                    return [types.TextContent(type="text", text=f"Error analyzing trade setup: {analysis['error']}")]
+                
+                # Return the formatted report
+                return [types.TextContent(type="text", text=analysis["formatted_report"])]
+        
+        except Exception as e:
+            return [types.TextContent(type="text", text=f"Error analyzing futures trade setup: {str(e)}")]
+            
+    elif name == "get-timing-edge":
+        symbol = arguments.get("symbol")
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+
+        try:
+            async with httpx.AsyncClient() as client:
+                # Get day of week edge
+                day_edge = await get_day_of_week_edge()
+                
+                # Get intraday timing edge
+                intraday_edge = await get_intraday_timing_edge(client, symbol)
+                
+                # Format the report
+                current_day = day_edge["current_day"]
+                day_edge_value = day_edge["current_day_edge"]
+                recommended_day = "Yes" if day_edge["recommended_day"] else "No"
+                
+                current_time = intraday_edge.get("current_time", "Unknown")
+                market_open = "Yes" if intraday_edge.get("market_is_open", False) else "No"
+                optimal_time = "Yes" if intraday_edge.get("optimal_entry_time", False) else "No"
+                pullback = "Yes" if intraday_edge.get("pullback_detected", False) else "No"
+                entry_recommended = "Yes" if intraday_edge.get("entry_recommended", False) else "No"
+                
+                report = [
+                    "TIMING EDGE ANALYSIS",
+                    "===================",
+                    "",
+                    f"Day of Week: {current_day}",
+                    f"Day Edge Value: {day_edge_value:.2f}x",
+                    f"Recommended Trading Day: {recommended_day}",
+                    "",
+                    f"Current Time: {current_time}",
+                    f"Market Open: {market_open}",
+                    f"Optimal Time Window: {optimal_time}",
+                    f"Recent Pullback Detected: {pullback}",
+                    f"Entry Timing Recommended: {entry_recommended}",
+                    "",
+                    "NOTES:",
+                    "- Optimal trading days are Tuesday and Wednesday",
+                    "- Avoid trading in the first 30 minutes and last 60 minutes of the session",
+                    "- Enter on pullbacks after the trend is established",
+                    "- Use 70%/30% split entry approach"
+                ]
+                
+                return [types.TextContent(type="text", text="\n".join(report))]
+        
+        except Exception as e:
+            return [types.TextContent(type="text", text=f"Error analyzing timing edge: {str(e)}")]
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
