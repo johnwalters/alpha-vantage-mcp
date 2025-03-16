@@ -12,7 +12,7 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 - Real-time cryptocurrency exchange rates with bid/ask prices
 - Historical options chain data with advanced filtering and sorting
 - Statistical futures leverage trading strategy tools:
-  - Technical indicator analysis
+  - Technical indicator analysis (RSI, Bollinger Bands, ATR, etc.)
   - Options flow and institutional activity monitoring
   - Mean reversion trading signals
   - Risk management calculations
