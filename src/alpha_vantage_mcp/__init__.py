@@ -39,8 +39,6 @@ from .institutional_data import (
 )
 
 from .futures_strategy import (
-    get_day_of_week_edge,
-    get_intraday_timing_edge,
     analyze_futures_trade_setup
 )
 
@@ -70,7 +68,5 @@ __all__ = [
     "detect_block_trades",
     "analyze_option_skew",
     "analyze_institutional_activity",
-    "get_day_of_week_edge",
-    "get_intraday_timing_edge",
     "analyze_futures_trade_setup"
 ]
