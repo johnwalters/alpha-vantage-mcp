@@ -35,9 +35,7 @@ from .institutional_data import (
     format_institutional_analysis
 )
 
-from .futures_strategy import (
-    analyze_futures_trade_setup
-)
+from .futures_strategy import analyze_futures_trade_setup
 
 if not API_KEY:
     raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
