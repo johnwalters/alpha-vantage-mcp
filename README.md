@@ -16,7 +16,6 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
   - Options flow and institutional activity monitoring
   - Mean reversion trading signals
   - Risk management calculations
-  - Entry timing optimization
 - Built-in error handling and rate limit management
 
 ## Installation
@@ -115,7 +114,7 @@ with inspector
 
 ## Available Tools
 
-The server implements nine tools:
+The server implements eight tools:
 
 ### Basic Financial Data Tools:
 - `get-stock-quote`: Get the latest stock quote for a specific company
@@ -128,7 +127,6 @@ The server implements nine tools:
 - `analyze-technical-setup`: Analyze technical setup for statistical mean reversion trading
 - `analyze-institutional-activity`: Analyze institutional activity including options flow and block trades
 - `analyze-futures-trade-setup`: Complete analysis of futures trade setup based on the statistical checklist
-- `get-timing-edge`: Get timing edge information for optimal trade entry
 
 ### get-stock-quote
 
@@ -225,6 +223,7 @@ Retrieves daily time series (OHLCV) data.
     "outputsize": {
         "type": "string",
         "description": "compact (latest 100 data points) or full (up to 20 years of data)",
+        "enum": ["compact", "full"],
         "default": "compact"
     }
 }
@@ -390,7 +389,7 @@ Implied Move: 3.68% by expiration
 
 ### analyze-futures-trade-setup
 
-Provides a comprehensive analysis for statistical futures trading based on the checklist, combining technical indicators, institutional activity, and timing analysis.
+Provides a comprehensive analysis for statistical futures trading based on the checklist, combining technical indicators and institutional activity.
 
 **Input Schema:**
 ```json
@@ -419,7 +418,7 @@ Provides a comprehensive analysis for statistical futures trading based on the c
 ========= STATISTICAL FUTURES TRADING ANALYSIS =========
 SYMBOL: AAPL | PRICE: $198.50 | DATE: 2024-03-16T10:30:15.789Z
 
-RECOMMENDATION: ENTER LONG POSITION NOW
+RECOMMENDATION: ENTER LONG POSITION
 
 ========================================================
 
@@ -435,10 +434,10 @@ Directional Bias: BULLISH
 Call/Put Ratio: 2.45
 Block Trades: 2
 
-ENTRY TIMING ANALYSIS:
-Day of Week: Tuesday (Edge: 1.15x)
-Optimal Time: Yes
-Pullback Detected: Yes
+MARKET CONDITION ANALYSIS:
+VIX Change: -2.35%
+Sector Performance: 1.82%
+S&P 500 Above MA(20): Yes
 
 POSITION SIZING:
 Account Value: $100000.00
@@ -457,42 +456,6 @@ TRADE EXECUTION INSTRUCTIONS:
 4. Set take profit at $208.43
 5. Set max holding period of 5 days
 6. Consider adding remaining 30% on first pullback
-```
-
-### get-timing-edge
-
-Analyzes optimal entry timing based on day of week and intraday patterns.
-
-**Input Schema:**
-```json
-{
-    "symbol": {
-        "type": "string",
-        "description": "Stock symbol (e.g., AAPL, MSFT)"
-    }
-}
-```
-
-**Example Response:**
-```
-TIMING EDGE ANALYSIS
-===================
-
-Day of Week: Tuesday
-Day Edge Value: 1.15x
-Recommended Trading Day: Yes
-
-Current Time: 10:45
-Market Open: Yes
-Optimal Time Window: Yes
-Recent Pullback Detected: Yes
-Entry Timing Recommended: Yes
-
-NOTES:
-- Optimal trading days are Tuesday and Wednesday
-- Avoid trading in the first 30 minutes and last 60 minutes of the session
-- Enter on pullbacks after the trend is established
-- Use 70%/30% split entry approach
 ```
 
 ## Error Handling
@@ -524,7 +487,6 @@ The statistical futures trading strategy implemented in this server is designed 
 3. **Momentum Confirmation**: Rate of change, VWAP analysis, and ATR patterns
 4. **Institutional Activity**: Options flow, block trades, and dark pool activity
 5. **Risk Management**: Position sizing, stop losses, and profit targets
-6. **Entry Timing**: Intraday momentum, time of day, and day of week effects
 
 The strategy targets potential 10% price moves (100% gain with 10x leverage) with strict risk management rules, limiting single-trade risk to 3% of account value.
 
