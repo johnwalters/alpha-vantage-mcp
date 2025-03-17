@@ -1,21 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "alpha-vantage-mcp"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+authors = [
+  { name="berlinbra", email="BMBpsn@gmail.com" },
+]
+description = "MCP Server for Alpha Vantage API"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "httpx>=0.28.1",
-    "mcp>=1.1.2",
+    "httpx>=0.25.0",
+    "mcp",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0"
 ]
 
-[build-system]
-requires = [ "hatchling",]
-build-backend = "hatchling.build"
-
-[project.scripts]
-alpha-vantage-mcp = "alpha_vantage_mcp:main"
-
-[[project.authors]]
-name = "berlinbra"
-email = "BMBpsn@gmail.com"
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black"
+]
