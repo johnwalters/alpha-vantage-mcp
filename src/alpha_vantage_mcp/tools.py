@@ -265,3 +265,52 @@ def format_historical_options(options_data: Dict[str, Any], limit: int = 10, sor
         return "".join(formatted)
     except Exception as e:
         return f"Error formatting options data: {str(e)}"
+
+
+def format_sma(sma_data: Dict[str, Any], limit: int = 10) -> str:
+    """Format Simple Moving Average (SMA) data into a concise string.
+    
+    Args:
+        sma_data: The response data from the Alpha Vantage SMA endpoint
+        limit: Number of data points to return (default: 10)
+        
+    Returns:
+        A formatted string containing the SMA information
+    """
+    try:
+        # Get metadata
+        metadata = sma_data.get("Meta Data", {})
+        if not metadata:
+            return "No SMA metadata available in the response"
+            
+        symbol = metadata.get("1: Symbol", "Unknown")
+        indicator = metadata.get("2: Indicator", "SMA")
+        interval = metadata.get("4: Interval", "Unknown")
+        time_period = metadata.get("5: Time Period", "Unknown")
+        last_refreshed = metadata.get("3: Last Refreshed", "Unknown")
+        series_type = metadata.get("6: Series Type", "Unknown")
+        
+        # Get technical indicator data
+        technical_data = sma_data.get(f"Technical Analysis: {indicator}", {})
+        if not technical_data:
+            return "No SMA data available in the response"
+            
+        # Format the header
+        formatted_data = [
+            f"Simple Moving Average (SMA) for {symbol}\n",
+            f"Interval: {interval}\n",
+            f"Time Period: {time_period}\n",
+            f"Series Type: {series_type}\n",
+            f"Last Refreshed: {last_refreshed}\n\n",
+            "Date | SMA Value\n",
+            "---- | ---------\n"
+        ]
+        
+        # Format the most recent data points (limited by the limit parameter)
+        for date, values in list(sorted(technical_data.items(), reverse=True))[:limit]:
+            sma_value = values.get("SMA", "N/A")
+            formatted_data.append(f"{date} | {sma_value}\n")
+            
+        return "".join(formatted_data)
+    except Exception as e:
+        return f"Error formatting SMA data: {str(e)}"
