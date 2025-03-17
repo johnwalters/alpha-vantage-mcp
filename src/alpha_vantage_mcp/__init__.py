@@ -1,9 +1,10 @@
-from . import server
-import asyncio
+"""
+Alpha Vantage MCP Server
 
-def main():
-    """Main entry point for the package."""
-    asyncio.run(server.main())
+A Model Context Protocol (MCP) server that provides real-time access to financial 
+market data through the Alpha Vantage API.
+"""
 
-# Optionally expose other important items at package level
-__all__ = ['main', 'server']
+__version__ = "0.2.0"
+
+from .server import server, handle_list_tools, handle_call_tool
