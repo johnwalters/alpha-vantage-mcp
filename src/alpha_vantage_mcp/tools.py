@@ -202,8 +202,6 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
     Returns:
         A formatted string containing the cryptocurrency time series information
     """
-    raw_response = "RAW API RESPONSE:\n" + json.dumps(time_series_data, indent=2) + "\n\n"
-    
     try:
         # Determine the time series key based on series_type
         time_series_key = ""
@@ -214,56 +212,52 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
         elif series_type == "monthly":
             time_series_key = "Time Series (Digital Currency Monthly)"
         else:
-            return f"Unknown series type: {series_type}\n\n{raw_response}"
+            return f"Unknown series type: {series_type}"
             
+        # Get the time series data
+        time_series = time_series_data.get(time_series_key, {})
+        if not time_series:
+            all_keys = ", ".join(time_series_data.keys())
+            return f"No cryptocurrency time series data found with key: '{time_series_key}'.\nAvailable keys: {all_keys}"
+
         # Get metadata
         metadata = time_series_data.get("Meta Data", {})
-        if not metadata:
-            return f"No metadata found in API response\n\n{raw_response}"
-            
         crypto_symbol = metadata.get("2. Digital Currency Code", "Unknown")
         crypto_name = metadata.get("3. Digital Currency Name", "Unknown")
         market = metadata.get("4. Market Code", "Unknown")
         market_name = metadata.get("5. Market Name", "Unknown")
         last_refreshed = metadata.get("6. Last Refreshed", "Unknown")
         time_zone = metadata.get("7. Time Zone", "Unknown")
-        
-        # Get the time series data
-        time_series = time_series_data.get(time_series_key, {})
-        if not time_series:
-            all_keys = ", ".join(time_series_data.keys())
-            return f"No cryptocurrency time series data found with key: '{time_series_key}'.\nAvailable keys: {all_keys}\n\n{raw_response}"
 
         # Format the header
         formatted_data = [
             f"{series_type.capitalize()} Time Series for {crypto_name} ({crypto_symbol})",
             f"Market: {market_name} ({market})",
             f"Last Refreshed: {last_refreshed} {time_zone}",
-            "",
-            f"FULL API RESPONSE: {json.dumps(time_series_data, indent=2)[:1000]}...",
-            "",
-            "METADATA FIELDS:",
+            ""
         ]
-        
-        for key, value in metadata.items():
-            formatted_data.append(f"{key}: {value}")
-        
-        formatted_data.append("\nFIRST DATA POINT:")
-        
-        # Format the first data point to see its structure
-        if time_series:
-            first_date = next(iter(time_series))
-            formatted_data.append(f"Date: {first_date}")
+
+        # Format the most recent 5 data points
+        for date, values in list(time_series.items())[:5]:
+            formatted_data.append(f"Date: {date}")
             
-            first_point_data = time_series[first_date]
-            formatted_data.append(f"Keys in data point: {list(first_point_data.keys())}")
+            # Get price information - based on the API response, we now know the correct field names
+            open_price = values.get("1. open", "N/A")
+            high_price = values.get("2. high", "N/A")
+            low_price = values.get("3. low", "N/A")
+            close_price = values.get("4. close", "N/A")
+            volume = values.get("5. volume", "N/A")
             
-            for key, value in first_point_data.items():
-                formatted_data.append(f"{key}: {value}")
+            formatted_data.append(f"Open: {open_price} {market}")
+            formatted_data.append(f"High: {high_price} {market}")
+            formatted_data.append(f"Low: {low_price} {market}")
+            formatted_data.append(f"Close: {close_price} {market}")
+            formatted_data.append(f"Volume: {volume}")
+            formatted_data.append("---")
         
         return "\n".join(formatted_data)
     except Exception as e:
-        return f"Error formatting cryptocurrency time series data: {str(e)}\n\n{raw_response}"
+        return f"Error formatting cryptocurrency time series data: {str(e)}"
 
 
 def format_historical_options(options_data: Dict[str, Any], limit: int = 10, sort_by: str = "strike", sort_order: str = "asc") -> str:
