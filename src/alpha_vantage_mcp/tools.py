@@ -202,14 +202,9 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
     Returns:
         A formatted string containing the cryptocurrency time series information
     """
+    raw_response = "RAW API RESPONSE:\n" + json.dumps(time_series_data, indent=2) + "\n\n"
+    
     try:
-        # First, print debug information about the structure of the response
-        debug_info = ["DEBUG: API Response structure"]
-        debug_info.append(json.dumps(time_series_data, indent=2)[:500] + "... (truncated)")
-        debug_info.append("\nDEBUG: Top-level keys in response:")
-        for key in time_series_data.keys():
-            debug_info.append(f"- {key}")
-
         # Determine the time series key based on series_type
         time_series_key = ""
         if series_type == "daily":
@@ -219,59 +214,56 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
         elif series_type == "monthly":
             time_series_key = "Time Series (Digital Currency Monthly)"
         else:
-            debug_info.append(f"Unknown series type: {series_type}")
-            return "\n".join(debug_info)
+            return f"Unknown series type: {series_type}\n\n{raw_response}"
             
-        # Get the time series data
-        time_series = time_series_data.get(time_series_key, {})
-        if not time_series:
-            debug_info.append(f"No cryptocurrency time series data found with key: {time_series_key}")
-            return "\n".join(debug_info)
-
         # Get metadata
         metadata = time_series_data.get("Meta Data", {})
-        debug_info.append("\nDEBUG: Metadata fields:")
-        for key, value in metadata.items():
-            debug_info.append(f"- {key}: {value}")
-
+        if not metadata:
+            return f"No metadata found in API response\n\n{raw_response}"
+            
         crypto_symbol = metadata.get("2. Digital Currency Code", "Unknown")
         crypto_name = metadata.get("3. Digital Currency Name", "Unknown")
         market = metadata.get("4. Market Code", "Unknown")
         market_name = metadata.get("5. Market Name", "Unknown")
         last_refreshed = metadata.get("6. Last Refreshed", "Unknown")
         time_zone = metadata.get("7. Time Zone", "Unknown")
+        
+        # Get the time series data
+        time_series = time_series_data.get(time_series_key, {})
+        if not time_series:
+            all_keys = ", ".join(time_series_data.keys())
+            return f"No cryptocurrency time series data found with key: '{time_series_key}'.\nAvailable keys: {all_keys}\n\n{raw_response}"
 
         # Format the header
         formatted_data = [
-            f"{series_type.capitalize()} Time Series for {crypto_name} ({crypto_symbol})\n"
-            f"Market: {market_name} ({market})\n"
-            f"Last Refreshed: {last_refreshed} {time_zone}\n\n"
+            f"{series_type.capitalize()} Time Series for {crypto_name} ({crypto_symbol})",
+            f"Market: {market_name} ({market})",
+            f"Last Refreshed: {last_refreshed} {time_zone}",
+            "",
+            f"FULL API RESPONSE: {json.dumps(time_series_data, indent=2)[:1000]}...",
+            "",
+            "METADATA FIELDS:",
         ]
-
-        # Debug a sample entry in the time series data
+        
+        for key, value in metadata.items():
+            formatted_data.append(f"{key}: {value}")
+        
+        formatted_data.append("\nFIRST DATA POINT:")
+        
+        # Format the first data point to see its structure
         if time_series:
             first_date = next(iter(time_series))
-            debug_info.append(f"\nDEBUG: First data point ({first_date}) contains:")
-            for key, value in time_series[first_date].items():
-                debug_info.append(f"- {key}: {value}")
-
-        # Format the most recent 5 data points
-        for date, values in list(time_series.items())[:5]:
-            daily_data = []
-            daily_data.append(f"Date: {date}\n")
-
-            # Try different field naming patterns
-            for key, value in values.items():
-                daily_data.append(f"{key}: {value}\n")
-
-            daily_data.append("---\n")
-            formatted_data.append("".join(daily_data))
-
-        # Append all debug info at the end
-        formatted_data.append("\n" + "\n".join(debug_info))
+            formatted_data.append(f"Date: {first_date}")
+            
+            first_point_data = time_series[first_date]
+            formatted_data.append(f"Keys in data point: {list(first_point_data.keys())}")
+            
+            for key, value in first_point_data.items():
+                formatted_data.append(f"{key}: {value}")
+        
         return "\n".join(formatted_data)
     except Exception as e:
-        return f"Error formatting cryptocurrency time series data: {str(e)}\n\nAPI Response: {json.dumps(time_series_data, indent=2)[:1000]}"
+        return f"Error formatting cryptocurrency time series data: {str(e)}\n\n{raw_response}"
 
 
 def format_historical_options(options_data: Dict[str, Any], limit: int = 10, sort_by: str = "strike", sort_order: str = "asc") -> str:
