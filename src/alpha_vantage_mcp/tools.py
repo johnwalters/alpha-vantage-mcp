@@ -8,7 +8,6 @@ and formatting the responses.
 from typing import Any, Dict, Optional
 import httpx
 import os
-import json
 
 ALPHA_VANTAGE_BASE = "https://www.alphavantage.co/query"
 API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
@@ -239,8 +238,6 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
 
         # Format the most recent 5 data points
         for date, values in list(time_series.items())[:5]:
-            formatted_data.append(f"Date: {date}")
-            
             # Get price information - based on the API response, we now know the correct field names
             open_price = values.get("1. open", "N/A")
             high_price = values.get("2. high", "N/A")
@@ -248,6 +245,7 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
             close_price = values.get("4. close", "N/A")
             volume = values.get("5. volume", "N/A")
             
+            formatted_data.append(f"Date: {date}")
             formatted_data.append(f"Open: {open_price} {market}")
             formatted_data.append(f"High: {high_price} {market}")
             formatted_data.append(f"Low: {low_price} {market}")
