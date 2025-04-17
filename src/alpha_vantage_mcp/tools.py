@@ -191,6 +191,73 @@ def format_time_series(time_series_data: Dict[str, Any]) -> str:
         return f"Error formatting time series data: {str(e)}"
 
 
+def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str) -> str:
+    """Format cryptocurrency time series data into a concise string.
+    
+    Args:
+        time_series_data: The response data from Alpha Vantage Digital Currency endpoints
+        series_type: Type of time series (daily, weekly, monthly)
+        
+    Returns:
+        A formatted string containing the cryptocurrency time series information
+    """
+    try:
+        # Determine the time series key based on series_type
+        time_series_key = ""
+        if series_type == "daily":
+            time_series_key = "Time Series (Digital Currency Daily)"
+        elif series_type == "weekly":
+            time_series_key = "Time Series (Digital Currency Weekly)"
+        elif series_type == "monthly":
+            time_series_key = "Time Series (Digital Currency Monthly)"
+        else:
+            return f"Unknown series type: {series_type}"
+            
+        # Get the time series data
+        time_series = time_series_data.get(time_series_key, {})
+        if not time_series:
+            all_keys = ", ".join(time_series_data.keys())
+            return f"No cryptocurrency time series data found with key: '{time_series_key}'.\nAvailable keys: {all_keys}"
+
+        # Get metadata
+        metadata = time_series_data.get("Meta Data", {})
+        crypto_symbol = metadata.get("2. Digital Currency Code", "Unknown")
+        crypto_name = metadata.get("3. Digital Currency Name", "Unknown")
+        market = metadata.get("4. Market Code", "Unknown")
+        market_name = metadata.get("5. Market Name", "Unknown")
+        last_refreshed = metadata.get("6. Last Refreshed", "Unknown")
+        time_zone = metadata.get("7. Time Zone", "Unknown")
+
+        # Format the header
+        formatted_data = [
+            f"{series_type.capitalize()} Time Series for {crypto_name} ({crypto_symbol})",
+            f"Market: {market_name} ({market})",
+            f"Last Refreshed: {last_refreshed} {time_zone}",
+            ""
+        ]
+
+        # Format the most recent 5 data points
+        for date, values in list(time_series.items())[:5]:
+            # Get price information - based on the API response, we now know the correct field names
+            open_price = values.get("1. open", "N/A")
+            high_price = values.get("2. high", "N/A")
+            low_price = values.get("3. low", "N/A")
+            close_price = values.get("4. close", "N/A")
+            volume = values.get("5. volume", "N/A")
+            
+            formatted_data.append(f"Date: {date}")
+            formatted_data.append(f"Open: {open_price} {market}")
+            formatted_data.append(f"High: {high_price} {market}")
+            formatted_data.append(f"Low: {low_price} {market}")
+            formatted_data.append(f"Close: {close_price} {market}")
+            formatted_data.append(f"Volume: {volume}")
+            formatted_data.append("---")
+        
+        return "\n".join(formatted_data)
+    except Exception as e:
+        return f"Error formatting cryptocurrency time series data: {str(e)}"
+
+
 def format_historical_options(options_data: Dict[str, Any], limit: int = 10, sort_by: str = "strike", sort_order: str = "asc") -> str:
     """Format historical options chain data into a concise string with sorting.
     
