@@ -10,6 +10,7 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 - Real-time stock quotes with price, volume, and change data
 - Detailed company information including sector, industry, and market cap
 - Real-time cryptocurrency exchange rates with bid/ask prices
+- Daily, weekly, and monthly cryptocurrency time series data
 - Historical options chain data with advanced filtering and sorting
 - Built-in error handling and rate limit management
 
@@ -109,12 +110,15 @@ with inspector
 
 ## Available Tools
 
-The server implements five tools:
+The server implements eight tools:
 - `get-stock-quote`: Get the latest stock quote for a specific company
 - `get-company-info`: Get stock-related information for a specific company
 - `get-crypto-exchange-rate`: Get current cryptocurrency exchange rates
 - `get-time-series`: Get historical daily price data for a stock
 - `get-historical-options`: Get historical options chain data with sorting capabilities
+- `get-crypto-daily`: Get daily time series data for a cryptocurrency
+- `get-crypto-weekly`: Get weekly time series data for a cryptocurrency
+- `get-crypto-monthly`: Get monthly time series data for a cryptocurrency
 
 ### get-stock-quote
 
@@ -286,6 +290,135 @@ Greeks:
 
 Contract 2:
 ...
+```
+
+### get-crypto-daily
+
+Retrieves daily time series data for a cryptocurrency.
+
+**Input Schema:**
+```json
+{
+    "symbol": {
+        "type": "string",
+        "description": "Cryptocurrency symbol (e.g., BTC, ETH)"
+    },
+    "market": {
+        "type": "string",
+        "description": "Market currency (e.g., USD, EUR)",
+        "default": "USD"
+    }
+}
+```
+
+**Example Response:**
+```
+Daily cryptocurrency time series for SOL in USD:
+
+Daily Time Series for Solana (SOL)
+Market: United States Dollar (USD)
+Last Refreshed: 2025-04-17 00:00:00 UTC
+
+Date: 2025-04-17
+Open: 131.31000000 USD
+High: 131.67000000 USD
+Low: 130.74000000 USD
+Close: 131.15000000 USD
+Volume: 39652.22195178
+---
+Date: 2025-04-16
+Open: 126.10000000 USD
+High: 133.91000000 USD
+Low: 123.46000000 USD
+Close: 131.32000000 USD
+Volume: 1764240.04195810
+---
+```
+
+### get-crypto-weekly
+
+Retrieves weekly time series data for a cryptocurrency.
+
+**Input Schema:**
+```json
+{
+    "symbol": {
+        "type": "string",
+        "description": "Cryptocurrency symbol (e.g., BTC, ETH)"
+    },
+    "market": {
+        "type": "string",
+        "description": "Market currency (e.g., USD, EUR)",
+        "default": "USD"
+    }
+}
+```
+
+**Example Response:**
+```
+Weekly cryptocurrency time series for SOL in USD:
+
+Weekly Time Series for Solana (SOL)
+Market: United States Dollar (USD)
+Last Refreshed: 2025-04-17 00:00:00 UTC
+
+Date: 2025-04-17
+Open: 128.32000000 USD
+High: 136.00000000 USD
+Low: 123.46000000 USD
+Close: 131.15000000 USD
+Volume: 4823091.05667581
+---
+Date: 2025-04-13
+Open: 105.81000000 USD
+High: 134.11000000 USD
+Low: 95.16000000 USD
+Close: 128.32000000 USD
+Volume: 18015328.38860037
+---
+```
+
+### get-crypto-monthly
+
+Retrieves monthly time series data for a cryptocurrency.
+
+**Input Schema:**
+```json
+{
+    "symbol": {
+        "type": "string",
+        "description": "Cryptocurrency symbol (e.g., BTC, ETH)"
+    },
+    "market": {
+        "type": "string",
+        "description": "Market currency (e.g., USD, EUR)",
+        "default": "USD"
+    }
+}
+```
+
+**Example Response:**
+```
+Monthly cryptocurrency time series for SOL in USD:
+
+Monthly Time Series for Solana (SOL)
+Market: United States Dollar (USD)
+Last Refreshed: 2025-04-17 00:00:00 UTC
+
+Date: 2025-04-17
+Open: 124.51000000 USD
+High: 136.18000000 USD
+Low: 95.16000000 USD
+Close: 131.15000000 USD
+Volume: 34268628.85976021
+---
+Date: 2025-03-31
+Open: 148.09000000 USD
+High: 180.00000000 USD
+Low: 112.00000000 USD
+Close: 124.54000000 USD
+Volume: 42360395.75443056
+---
 ```
 
 ## Error Handling
