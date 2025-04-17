@@ -15,6 +15,7 @@ from .tools import (
     format_crypto_rate,
     format_time_series,
     format_historical_options,
+    format_crypto_time_series,
     ALPHA_VANTAGE_BASE,
     API_KEY
 )
@@ -144,6 +145,63 @@ async def handle_list_tools() -> list[types.Tool]:
                         "description": "Optional: Sort order",
                         "enum": ["asc", "desc"],
                         "default": "asc"
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        types.Tool(
+            name="get-crypto-daily",
+            description="Get daily time series data for a cryptocurrency",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                    },
+                    "market": {
+                        "type": "string",
+                        "description": "Market currency (e.g., USD, EUR)",
+                        "default": "USD"
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        types.Tool(
+            name="get-crypto-weekly",
+            description="Get weekly time series data for a cryptocurrency",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                    },
+                    "market": {
+                        "type": "string",
+                        "description": "Market currency (e.g., USD, EUR)",
+                        "default": "USD"
+                    }
+                },
+                "required": ["symbol"],
+            },
+        ),
+        types.Tool(
+            name="get-crypto-monthly",
+            description="Get monthly time series data for a cryptocurrency",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                    },
+                    "market": {
+                        "type": "string",
+                        "description": "Market currency (e.g., USD, EUR)",
+                        "default": "USD"
                     }
                 },
                 "required": ["symbol"],
@@ -292,6 +350,84 @@ async def handle_call_tool(
             options_text += f":\n\n{formatted_options}"
 
             return [types.TextContent(type="text", text=options_text)]
+            
+    elif name == "get-crypto-daily":
+        symbol = arguments.get("symbol")
+        market = arguments.get("market", "USD")
+        
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+        market = market.upper()
+
+        async with httpx.AsyncClient() as client:
+            crypto_data = await make_alpha_request(
+                client,
+                "DIGITAL_CURRENCY_DAILY",
+                symbol,
+                {"market": market}
+            )
+
+            if isinstance(crypto_data, str):
+                return [types.TextContent(type="text", text=f"Error: {crypto_data}")]
+
+            formatted_data = format_crypto_time_series(crypto_data, "daily")
+            data_text = f"Daily cryptocurrency time series for {symbol} in {market}:\n\n{formatted_data}"
+
+            return [types.TextContent(type="text", text=data_text)]
+            
+    elif name == "get-crypto-weekly":
+        symbol = arguments.get("symbol")
+        market = arguments.get("market", "USD")
+        
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+        market = market.upper()
+
+        async with httpx.AsyncClient() as client:
+            crypto_data = await make_alpha_request(
+                client,
+                "DIGITAL_CURRENCY_WEEKLY",
+                symbol,
+                {"market": market}
+            )
+
+            if isinstance(crypto_data, str):
+                return [types.TextContent(type="text", text=f"Error: {crypto_data}")]
+
+            formatted_data = format_crypto_time_series(crypto_data, "weekly")
+            data_text = f"Weekly cryptocurrency time series for {symbol} in {market}:\n\n{formatted_data}"
+
+            return [types.TextContent(type="text", text=data_text)]
+            
+    elif name == "get-crypto-monthly":
+        symbol = arguments.get("symbol")
+        market = arguments.get("market", "USD")
+        
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        symbol = symbol.upper()
+        market = market.upper()
+
+        async with httpx.AsyncClient() as client:
+            crypto_data = await make_alpha_request(
+                client,
+                "DIGITAL_CURRENCY_MONTHLY",
+                symbol,
+                {"market": market}
+            )
+
+            if isinstance(crypto_data, str):
+                return [types.TextContent(type="text", text=f"Error: {crypto_data}")]
+
+            formatted_data = format_crypto_time_series(crypto_data, "monthly")
+            data_text = f"Monthly cryptocurrency time series for {symbol} in {market}:\n\n{formatted_data}"
+
+            return [types.TextContent(type="text", text=data_text)]
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
