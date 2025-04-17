@@ -236,15 +236,14 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
 
         # Format the most recent 5 data points
         for date, values in list(time_series.items())[:5]:
-            # Extract values in market currency and USD
-            open_market = values.get(f"1a. open ({market})", "N/A")
-            open_usd = values.get("1b. open (USD)", "N/A")
-            high_market = values.get(f"2a. high ({market})", "N/A")
-            high_usd = values.get("2b. high (USD)", "N/A")
-            low_market = values.get(f"3a. low ({market})", "N/A")
-            low_usd = values.get("3b. low (USD)", "N/A")
-            close_market = values.get(f"4a. close ({market})", "N/A")
-            close_usd = values.get("4b. close (USD)", "N/A")
+            open_market = values.get(f"1a. open ({market})", values.get("1a. open", "N/A"))
+            open_usd = values.get("1b. open (USD)", values.get("1b. open", "N/A"))
+            high_market = values.get(f"2a. high ({market})", values.get("2a. high", "N/A"))
+            high_usd = values.get("2b. high (USD)", values.get("2b. high", "N/A"))
+            low_market = values.get(f"3a. low ({market})", values.get("3a. low", "N/A"))
+            low_usd = values.get("3b. low (USD)", values.get("3b. low", "N/A"))
+            close_market = values.get(f"4a. close ({market})", values.get("4a. close", "N/A"))
+            close_usd = values.get("4b. close (USD)", values.get("4b. close", "N/A"))
             volume = values.get("5. volume", "N/A")
             market_cap_usd = values.get("6. market cap (USD)", "N/A")
             
@@ -261,7 +260,20 @@ def format_crypto_time_series(time_series_data: Dict[str, Any], series_type: str
 
         return "\n".join(formatted_data)
     except Exception as e:
-        return f"Error formatting cryptocurrency time series data: {str(e)}"
+        # If there's an error, return all data keys to help with debugging
+        error_info = [f"Error formatting cryptocurrency time series data: {str(e)}"]
+        error_info.append("\nAPI Response Keys:")
+        for key in time_series_data.keys():
+            error_info.append(f"- {key}")
+            
+        # Check if we can access the time series data
+        if time_series_key in time_series_data and time_series_data[time_series_key]:
+            first_date = next(iter(time_series_data[time_series_key]))
+            error_info.append(f"\nFirst date entry ({first_date}) contains keys:")
+            for key in time_series_data[time_series_key][first_date].keys():
+                error_info.append(f"- {key}")
+                
+        return "\n".join(error_info)
 
 
 def format_historical_options(options_data: Dict[str, Any], limit: int = 10, sort_by: str = "strike", sort_order: str = "asc") -> str:
