@@ -206,6 +206,20 @@ async def handle_list_tools() -> list[types.Tool]:
                 },
                 "required": ["symbol"],
             },
+        ),
+        types.Tool(
+            name="get-daily-time-series",
+            description="Get daily OHLCV data for a stock",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol (e.g., AAPL, MSFT)",
+                    },
+                },
+                "required": ["symbol"],
+            },
         )
     ]
 
@@ -428,6 +442,25 @@ async def handle_call_tool(
             data_text = f"Monthly cryptocurrency time series for {symbol} in {market}:\n\n{formatted_data}"
 
             return [types.TextContent(type="text", text=data_text)]
+    elif name == "get-daily-time-series":
+        symbol = arguments.get("symbol")
+        if not symbol:
+            return [types.TextContent(type="text", text="Missing symbol parameter")]
+
+        async with httpx.AsyncClient() as client:
+            response = await make_alpha_request(
+                client=client,
+                function="TIME_SERIES_DAILY",
+                symbol=symbol
+            )
+
+        if isinstance(response, str):
+            return [types.TextContent(type="text", text=f"Error: {response}")]
+
+        formatted_data = format_time_series(response)
+        data_text = f"Daily time series data for {symbol} (OHLCV):\n\n{formatted_data}"
+
+        return [types.TextContent(type="text", text=data_text)]
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
