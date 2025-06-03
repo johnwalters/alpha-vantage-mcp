@@ -220,6 +220,15 @@ async def handle_list_tools() -> list[types.Tool]:
                 },
                 "required": ["symbol"],
             },
+        ),
+        types.Tool(
+            name="get-top-gainers-losers",
+            description="Get the top gainers and losers in the market",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
         )
     ]
 
@@ -231,7 +240,7 @@ async def handle_call_tool(
     Handle tool execution requests.
     Tools can fetch financial data and notify clients of changes.
     """
-    if not arguments:
+    if not arguments and name != "get-top-gainers-losers":
         return [types.TextContent(type="text", text="Missing arguments for the request")]
 
     if name == "get-stock-quote":
@@ -461,6 +470,18 @@ async def handle_call_tool(
         data_text = f"Daily time series data for {symbol} (OHLCV):\n\n{formatted_data}"
 
         return [types.TextContent(type="text", text=data_text)]
+    elif name == "get-top-gainers-losers":
+        async with httpx.AsyncClient() as client:
+            response = await make_alpha_request(
+                client,
+                "TOP_GAINERS_LOSERS"
+            )
+
+        if isinstance(response, str):
+            return [types.TextContent(type="text", text=f"Error: {response}")]
+
+        gainers_losers_text = "Top Gainers and Losers:\n\n" + "\n".join(str(item) for item in response)
+        return [types.TextContent(type="text", text=gainers_losers_text)]
     else:
         return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
 
